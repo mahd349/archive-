@@ -17,6 +17,7 @@ import { render, setPage, clearFilters } from './render.js';
 import { openEditor } from './editor.js';
 import { openSettings } from './settings.js';
 import { initShortcuts, toggleTheme } from './shortcuts.js';
+import { syncLockMode } from './pattern.js';
 
 let dbOpened = false;
 
@@ -26,7 +27,7 @@ function showLock() {
   setTimeout(() => $('#lockPassword').focus(), 50);
 }
 
-async function startApp() {
+export async function startApp() {
   $('#lockScreen').hidden = true;
   $('#app').hidden = false;
   $('#status').hidden = false;
@@ -164,6 +165,7 @@ function init() {
   injectManifestLink();
   bindEvents();
   initShortcuts();
+  syncLockMode();
   registerServiceWorker();
   if (settings.encryptionEnabled) showLock();
   else startApp();
