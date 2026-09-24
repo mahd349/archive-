@@ -1,5 +1,5 @@
 // sw.js
-const CACHE = 'personal-archive-v1';
+const CACHE = 'personal-archive-v2';
 const SHELL = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const SHELL = [
   './js/editor.js',
   './js/settings.js',
   './js/shortcuts.js',
+  './js/pattern.js',
   './js/app.js'
 ];
 
