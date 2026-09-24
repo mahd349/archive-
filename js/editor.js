@@ -292,6 +292,7 @@ function renderAttachList() {
   for (const entry of pending) {
     makeRow(entry, entry.previewUrl, () => {
       if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+      if (entry.staged) deleteRawBlob(entry.attId).catch(() => {});
       pending = pending.filter(p => p.tempId !== entry.tempId);
       renderAttachList();
     }, false, entry.tempId);
@@ -306,6 +307,8 @@ async function addFiles(fileList) {
     const kind = fileKind(file);
     const entry = {
       tempId: ++tempIdSeq,
+      attId: null,
+      staged: false,
       kind,
       name: file.name || 'فایل',
       mime: file.type || '',
@@ -328,6 +331,10 @@ async function addFiles(fileList) {
         entry.previewUrl = URL.createObjectURL(file);
       }
     }
+    entry.attId = makeUniqueId();
+    await putAttachmentBlob(entry.attId, file, entry.thumbBlob);
+    entry.staged = true;
+    entry.file = null;
     pending.push(entry);
   }
   renderAttachList();
@@ -347,6 +354,7 @@ function resetCompose() {
   composeMode = 'item';
   for (const entry of pending) {
     if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+    if (entry.staged) deleteRawBlob(entry.attId).catch(() => {});
   }
   pending = [];
   removedAttIds = [];
@@ -379,13 +387,13 @@ function exitCompose() {
 
 async function persistPending(list, attachmentsArray) {
   for (const entry of list) {
-    const attId = makeUniqueId();
     if (entry.kind === 'link') {
+      const attId = makeUniqueId();
       attachmentsArray.push({ id: attId, kind: 'link', name: entry.url, url: entry.url });
       continue;
     }
     attachmentsArray.push({
-      id: attId,
+      id: entry.attId,
       kind: entry.kind,
       name: entry.name,
       mime: entry.mime,
@@ -394,7 +402,15 @@ async function persistPending(list, attachmentsArray) {
       width: entry.width,
       height: entry.height
     });
-    await putAttachmentBlob(attId, entry.file, entry.thumbBlob);
+    if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+  }
+}
+
+async function cleanupStaged() {
+  for (const entry of pending) {
+    if (entry.staged) {
+      try { await deleteRawBlob(entry.attId); } catch {}
+    }
     if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
   }
 }
@@ -406,7 +422,12 @@ async function saveItem(values) {
     const old = getItemById(editingId);
     if (!old) throw new Error('آیتم پیدا نشد.');
     const updated = { ...old, ...values, attachments, updatedAt: now };
-    await putItem(updated);
+    try {
+      await putItem(updated);
+    } catch (err) {
+      await cleanupStaged();
+      throw err;
+    }
     await persistPending(pending, updated.attachments);
     for (const removedId of removedAttIds) await deleteRawBlob(removedId);
     replaceLocalItem(updated);
@@ -419,7 +440,12 @@ async function saveItem(values) {
       createdAt: now,
       updatedAt: now
     });
-    await putItem(item);
+    try {
+      await putItem(item);
+    } catch (err) {
+      await cleanupStaged();
+      throw err;
+    }
     await persistPending(pending, item.attachments);
     addItemLocal(item);
   }
@@ -450,7 +476,14 @@ async function saveFolder(values) {
   }
 }
 
+let saving = false;
 async function saveCompose() {
+  if (saving) return;
+  saving = true;
+  const button = $('#composeSaveBtn');
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = 'در حال ذخیره…';
   try {
     const values = formValues();
     if (composeMode === 'folder') await saveFolder(values);
@@ -464,6 +497,10 @@ async function saveCompose() {
   } catch (err) {
     console.error(err);
     toast(err.message || 'خطا در ذخیره', 'error');
+  } finally {
+    saving = false;
+    button.disabled = false;
+    button.textContent = label;
   }
 }
 
