@@ -552,3 +552,33 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   .attach-item { grid-template-columns: 64px 1fr auto; }
   .attach-thumb, .attach-icon { width: 64px; height: 52px; }
 }
+
+/* pattern pad + pin */
+.pattern-pad {
+  --dot: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, var(--dot));
+  grid-template-rows: repeat(3, var(--dot));
+  gap: 26px;
+  justify-content: center;
+  padding: 18px;
+  touch-action: none;
+  user-select: none;
+  margin-inline: auto;
+}
+.pattern-dot {
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.pattern-dot.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.25);
+}
+.lock-card form { display: grid; gap: 12px; }
+.pin-btn.pinned { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.badge.pin { background: rgba(59,130,246,.15); color: #60a5fa; border-color: rgba(59,130,246,.3); }
