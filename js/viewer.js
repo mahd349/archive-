@@ -8,7 +8,7 @@ import {
   downloadBlob,
   toast
 } from './utils.js';
-import { getAttachmentBlob, softDeleteItem } from './repo.js';
+import { getAttachmentBlob, softDeleteItem, togglePinned } from './repo.js';
 import { getItemById } from './state.js';
 import { renderMarkdown } from './markdown.js';
 import { importanceBadge, kindBadges, render, openFolder } from './render.js';
@@ -114,6 +114,9 @@ export async function openViewer(id) {
   viewerItemId = id;
   clearViewerMedia();
   $('#viewerTitle').textContent = defaultTitle(item);
+  const pinBtn = $('#viewerPinBtn');
+  pinBtn.textContent = item.pinned ? '📌 پین شده' : '📌 پین';
+  pinBtn.classList.toggle('primary', !!item.pinned);
   const badges = $('#viewerBadges');
   badges.innerHTML = '';
   badges.appendChild(kindBadges(item));
@@ -182,6 +185,20 @@ $('#viewerDownloadBtn').addEventListener('click', async () => {
     toast('دانلود شروع شد');
   } catch {
     toast('دانلود فایل ممکن نشد', 'error');
+  }
+});
+$('#viewerPinBtn').addEventListener('click', async () => {
+  const id = viewerItemId;
+  if (id == null) return;
+  try {
+    const updated = await togglePinned(id);
+    const pinBtn = $('#viewerPinBtn');
+    pinBtn.textContent = updated.pinned ? '📌 پین شده' : '📌 پین';
+    pinBtn.classList.toggle('primary', !!updated.pinned);
+    render();
+    toast(updated.pinned ? 'پین شد' : 'پین برداشته شد');
+  } catch {
+    toast('خطا در پین', 'error');
   }
 });
 $('#viewerDeleteBtn').addEventListener('click', async () => {
