@@ -422,13 +422,13 @@ async function saveItem(values) {
     const old = getItemById(editingId);
     if (!old) throw new Error('آیتم پیدا نشد.');
     const updated = { ...old, ...values, attachments, updatedAt: now };
+    await persistPending(pending, updated.attachments);
     try {
       await putItem(updated);
     } catch (err) {
       await cleanupStaged();
       throw err;
     }
-    await persistPending(pending, updated.attachments);
     for (const removedId of removedAttIds) await deleteRawBlob(removedId);
     replaceLocalItem(updated);
   } else {
@@ -440,13 +440,13 @@ async function saveItem(values) {
       createdAt: now,
       updatedAt: now
     });
+    await persistPending(pending, item.attachments);
     try {
       await putItem(item);
     } catch (err) {
       await cleanupStaged();
       throw err;
     }
-    await persistPending(pending, item.attachments);
     addItemLocal(item);
   }
   pending = [];
