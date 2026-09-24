@@ -27,7 +27,7 @@ html[data-theme="dark"] {
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: "Noto Naskh Arabic", Tahoma, "Segoe UI", sans-serif;
+  font-family: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
