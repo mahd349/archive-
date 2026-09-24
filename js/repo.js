@@ -57,7 +57,8 @@ export function normalizeItem(record) {
     createdAt: record.createdAt || new Date().toISOString(),
     updatedAt: record.updatedAt || record.createdAt || new Date().toISOString(),
     isDeleted: !!record.isDeleted,
-    deletedAt: record.deletedAt || null
+    deletedAt: record.deletedAt || null,
+    pinned: !!record.pinned
   };
 }
 
@@ -199,6 +200,15 @@ export async function restoreItem(id) {
   const old = getAllItems().find(x => x.id === id);
   if (!old) throw new Error('آیتم پیدا نشد.');
   const updated = { ...old, isDeleted: false, deletedAt: null, updatedAt: new Date().toISOString() };
+  await putItem(updated);
+  replaceLocalItem(updated);
+  return updated;
+}
+
+export async function togglePinned(id) {
+  const old = getAllItems().find(x => x.id === id);
+  if (!old) throw new Error('آیتم پیدا نشد.');
+  const updated = { ...old, pinned: !old.pinned, updatedAt: new Date().toISOString() };
   await putItem(updated);
   replaceLocalItem(updated);
   return updated;
