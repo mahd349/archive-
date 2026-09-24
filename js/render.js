@@ -12,7 +12,7 @@ import {
   parseQuery,
   toast
 } from './utils.js';
-import { getAttachmentBlob } from './repo.js';
+import { getAttachmentBlob, togglePinned } from './repo.js';
 import {
   PAGE_SIZE,
   state,
@@ -142,15 +142,18 @@ export function getFiltered() {
   if (state.type) result = result.filter(i => itemKinds(i).has(state.type));
   if (state.tag) result = result.filter(i => (i.tags || []).includes(state.tag));
   if (state.importance) result = result.filter(i => String(i.importance) === state.importance);
+  const pinRank = (a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
   if (!filtering) {
     result.sort((a, b) => {
+      const pin = pinRank(a, b);
+      if (pin !== 0) return pin;
       const folderRank = (a.kind === 'folder' ? 0 : 1) - (b.kind === 'folder' ? 0 : 1);
       if (folderRank !== 0) return folderRank;
       if (a.kind === 'folder') return (a.title || '').localeCompare(b.title || '', 'fa');
       return compareBySort(a, b);
     });
   } else {
-    result.sort(compareBySort);
+    result.sort((a, b) => pinRank(a, b) || compareBySort(a, b));
   }
   return result;
 }
@@ -303,6 +306,12 @@ function createItemCard(item) {
   badges.className = 'badges';
   badges.appendChild(kindBadges(item));
   badges.appendChild(importanceBadge(item.importance));
+  if (item.pinned) {
+    const pinBadge = document.createElement('span');
+    pinBadge.className = 'badge pin';
+    pinBadge.textContent = '📌 پین';
+    badges.appendChild(pinBadge);
+  }
   const actions = document.createElement('div');
   actions.className = 'card-actions';
   const copyText = copyableText(item);
@@ -325,6 +334,24 @@ function createItemCard(item) {
     copyBtn.addEventListener('keydown', (event) => event.stopPropagation());
     actions.appendChild(copyBtn);
   }
+  const pinBtn = document.createElement('button');
+  pinBtn.type = 'button';
+  pinBtn.className = 'copy-btn pin-btn' + (item.pinned ? ' pinned' : '');
+  pinBtn.textContent = '📌';
+  pinBtn.title = item.pinned ? 'برداشتن پین' : 'پین کردن';
+  pinBtn.setAttribute('aria-label', pinBtn.title);
+  pinBtn.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    try {
+      const updated = await togglePinned(item.id);
+      toast(updated.pinned ? 'پین شد' : 'پین برداشته شد');
+      render();
+    } catch {
+      toast('خطا در پین', 'error');
+    }
+  });
+  pinBtn.addEventListener('keydown', (event) => event.stopPropagation());
+  actions.appendChild(pinBtn);
   top.append(badges, actions);
   card.appendChild(top);
   const imageAtt = (item.attachments || []).find(att => att.kind === 'image');
