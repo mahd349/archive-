@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="آرشیو شخصی رمزنگاری‌شده در مرورگر: متن، فایل، تصویر، صدا و ویدیو در یک جای امن.">
+<meta name="theme-color" content="#0b1220">
+<title>آرشیو شخصی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="dropOverlay" class="dropOverlay" hidden>
+  <div>رها کنید تا پیوست‌ها اضافه شوند</div>
+</div>
+
+<div id="lockScreen" class="lock-screen" hidden>
+  <form id="lockForm" class="lock-card">
+    <h1>🔒 آرشیو شخصی</h1>
+    <p>برای باز کردن برنامه رمز عبور را وارد کنید</p>
+    <input id="lockPassword" type="password" placeholder="رمز عبور" required>
+    <button class="btn primary" type="submit">باز کردن</button>
+    <p id="lockError" class="error"></p>
+  </form>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">🗂️ آرشیو شخصی</div>
+    <div class="search-wrap">
+      <input id="searchInput" type="search" placeholder="جستجو... (پشتیبانی از tag: و type: و -منفی)">
+    </div>
+    <div class="actions">
+      <button id="addBtn" class="btn primary" type="button">+ افزودن</button>
+      <button id="newFolderBtn" class="btn" type="button">📁 پوشه جدید</button>
+      <button id="settingsBtn" class="btn" type="button">تنظیمات</button>
+      <button id="themeToggleBtn" class="icon-btn" type="button" title="تغییر تم" aria-label="تغییر تم">🌙</button>
+    </div>
+  </header>
+
+  <section class="toolbar">
+    <nav id="breadcrumb" class="breadcrumb" aria-label="مسیر پوشه"></nav>
+    <div class="toolbar-filters">
+      <select id="typeFilter" title="فیلتر نوع">
+        <option value="">همه انواع</option>
+        <option value="text">متن</option>
+        <option value="image">تصویر</option>
+        <option value="audio">صدا</option>
+        <option value="video">ویدیو</option>
+        <option value="file">فایل</option>
+        <option value="link">لینک</option>
+      </select>
+      <select id="tagFilter" title="فیلتر تگ"></select>
+      <select id="importanceFilter" title="فیلتر اهمیت">
+        <option value="">همه اهمیت‌ها</option>
+        <option value="1">اهمیت ۱</option>
+        <option value="2">اهمیت ۲</option>
+        <option value="3">اهمیت ۳</option>
+        <option value="4">اهمیت ۴</option>
+        <option value="5">اهمیت ۵</option>
+      </select>
+      <select id="sortFilter" title="مرتب‌سازی">
+        <option value="created_desc">جدیدترین</option>
+        <option value="created_asc">قدیمی‌ترین</option>
+        <option value="importance_desc">اهمیت نزولی</option>
+        <option value="importance_asc">اهمیت صعودی</option>
+        <option value="updated_desc">اخیراً ویرایش‌شده</option>
+      </select>
+      <button id="clearFiltersBtn" class="btn" type="button">پاک کردن فیلترها</button>
+    </div>
+  </section>
+
+  <main id="mainView">
+    <div id="status" class="status" hidden>
+      <div class="spinner"></div>
+      <span>در حال بارگذاری...</span>
+    </div>
+    <div id="emptyState" class="empty" hidden></div>
+    <div id="gallery" class="masonry"></div>
+    <nav id="pager" class="pager" hidden aria-label="صفحه‌بندی"></nav>
+  </main>
+
+  <section id="compose" class="compose" hidden aria-label="صفحه نوشتن">
+    <header class="compose-header">
+      <button id="composeBackBtn" class="btn" type="button">→ بازگشت</button>
+      <h2 id="composeHeading">آیتم جدید</h2>
+      <span id="autosaveState" class="autosave" aria-live="polite"></span>
+      <span class="spacer"></span>
+      <button id="composeSaveBtn" class="btn primary" type="button">ذخیره</button>
+    </header>
+    <div class="compose-body">
+      <div id="draftBanner" class="draft-banner" hidden>
+        <span>یک پیش‌نویس ذخیره‌شده پیدا شد.</span>
+        <button id="draftRestoreBtn" class="btn" type="button">ادامه پیش‌نویس</button>
+        <button id="draftDiscardBtn" class="btn danger" type="button">دور انداختن</button>
+      </div>
+      <label class="compose-title-label">
+        <input id="fTitle" type="text" class="compose-title" placeholder="عنوان (اختیاری)">
+      </label>
+      <div class="form-row">
+        <label>
+          اهمیت
+          <select id="fImportance">
+            <option value="1">۱ - کم</option>
+            <option value="2">۲</option>
+            <option value="3" selected>۳ - متوسط</option>
+            <option value="4">۴</option>
+            <option value="5">۵ - زیاد</option>
+          </select>
+        </label>
+        <label>
+          پوشه
+          <select id="fFolder"></select>
+        </label>
+        <label class="grow">
+          برچسب‌ها
+          <input id="fTags" type="text" list="tagsDatalist" placeholder="با کاما جدا کنید: میم, خنده, کار">
+          <datalist id="tagsDatalist"></datalist>
+        </label>
+      </div>
+      <label class="compose-content-label">
+        <textarea id="contentInput" class="compose-content" placeholder="اینجا بنویس... متن، یادداشت، کد، هر چیزی. بقیه چیزها را می‌توانی پایین همین صفحه بکشی و رها کنی."></textarea>
+      </label>
+      <div id="attachZone" class="dropzone">
+        <p>📎 فایل، تصویر یا ویدیو را اینجا رها کن</p>
+        <span class="muted">یا از دکمه‌های زیر استفاده کن</span>
+      </div>
+      <ul id="attachList" class="attach-list"></ul>
+      <div class="row">
+        <label class="btn" style="cursor:pointer;">
+          افزودن فایل
+          <input id="attachFileInput" type="file" multiple hidden>
+        </label>
+        <button id="addLinkBtn" class="btn" type="button">🔗 افزودن لینک</button>
+      </div>
+      <div id="linkRow" class="row" hidden>
+        <input id="linkUrlInput" type="url" dir="ltr" placeholder="https://example.com">
+        <button id="linkConfirmBtn" class="btn primary" type="button">ثبت لینک</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<dialog id="viewerDialog">
+  <div class="dialog">
+    <header class="dialog-header">
+      <h2 id="viewerTitle">نمایش آیتم</h2>
+      <button id="viewerCloseBtn" class="icon-btn" type="button" aria-label="بستن">✕</button>
+    </header>
+    <div class="viewer-bar">
+      <div id="viewerBadges" class="badges"></div>
+      <div id="viewerMeta" class="card-meta"></div>
+      <div class="viewer-actions">
+        <button id="viewerEditBtn" class="btn primary" type="button">ویرایش</button>
+        <button id="viewerCopyBtn" class="btn" type="button" hidden>کپی</button>
+        <button id="viewerDownloadBtn" class="btn" type="button" hidden>دانلود</button>
+        <a id="viewerOpenLinkBtn" class="btn" target="_blank" rel="noopener" hidden>باز کردن لینک</a>
+        <button id="viewerDeleteBtn" class="btn danger" type="button">حذف</button>
+      </div>
+    </div>
+    <div class="dialog-body" id="viewerBody">
+      <div id="viewerTags" class="tags" hidden></div>
+      <div id="viewerContent" class="viewer-content"></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="settingsDialog">
+  <form class="dialog">
+    <header class="dialog-header">
+      <h2>تنظیمات</h2>
+      <button id="settingsCloseBtn" class="icon-btn" type="button" aria-label="بستن">✕</button>
+    </header>
+    <div class="dialog-body">
+      <section class="section">
+        <h3>پشتیبان‌گیری</h3>
+        <p class="muted">
+          خروجی کامل به صورت JSON گرفته می‌شود. اگر رمزنگاری فعال باشد، بکاپ رمزگشایی‌شده صادر می‌شود؛ پس فایل را جای امن نگه دار.
+          بازیابی، داده‌های فعلی را جایگزین می‌کند.
+        </p>
+        <div class="row">
+          <button id="exportBtn" class="btn" type="button">دانلود بکاپ JSON</button>
+          <label class="btn" style="cursor:pointer;">
+            بازیابی از فایل
+            <input id="importInput" type="file" accept=".json,application/json" hidden>
+          </label>
+        </div>
+      </section>
+      <section class="section">
+        <h3>سطل زباله</h3>
+        <p id="trashInfo" class="muted"></p>
+        <div id="trashList" class="trash-list"></div>
+        <div class="row">
+          <button id="emptyTrashBtn" class="btn danger" type="button">خالی کردن سطل زباله</button>
+        </div>
+      </section>
+      <section class="section">
+        <h3>رمز عبور و رمزنگاری</h3>
+        <p id="lockStatus" class="muted"></p>
+        <div id="lockDisabledFields" hidden>
+          <div class="form-row">
+            <label>رمز جدید<input id="newPass" type="password" placeholder="رمز جدید"></label>
+            <label>تکرار رمز جدید<input id="confirmPass" type="password" placeholder="تکرار رمز جدید"></label>
+          </div>
+          <div class="row">
+            <button id="enablePassBtn" class="btn primary" type="button">فعال‌سازی رمز و رمزنگاری</button>
+          </div>
+        </div>
+        <div id="lockEnabledFields" hidden>
+          <div class="form-row">
+            <label>رمز فعلی<input id="currentPass" type="password" placeholder="رمز فعلی"></label>
+            <label>رمز جدید<input id="newPassChange" type="password" placeholder="رمز جدید"></label>
+          </div>
+          <label>تکرار رمز جدید<input id="confirmPassChange" type="password" placeholder="تکرار رمز جدید"></label>
+          <div class="row">
+            <button id="changePassBtn" class="btn primary" type="button">تغییر رمز</button>
+            <button id="disablePassBtn" class="btn danger" type="button">غیرفعال‌سازی رمز و رمزنگاری</button>
+          </div>
+        </div>
+        <p class="muted">
+          با فعال‌سازی رمز، داده‌ها قبل از ذخیره در IndexedDB رمزنگاری می‌شوند. در صورت فراموشی رمز، بازیابی اطلاعات عملاً ممکن نیست.
+        </p>
+      </section>
+    </div>
+    <footer class="dialog-footer">
+      <span class="spacer"></span>
+      <button id="closeSettingsBtn" class="btn primary" type="button">بستن</button>
+    </footer>
+  </form>
+</dialog>
+
+<div id="toastArea" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
