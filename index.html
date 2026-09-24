@@ -18,13 +18,23 @@
 </div>
 
 <div id="lockScreen" class="lock-screen" hidden>
-  <form id="lockForm" class="lock-card">
+  <div class="lock-card">
     <h1>🔒 آرشیو شخصی</h1>
-    <p>برای باز کردن برنامه رمز عبور را وارد کنید</p>
-    <input id="lockPassword" type="password" placeholder="رمز عبور" required>
-    <button class="btn primary" type="submit">باز کردن</button>
+    <p>برای باز کردن، رمز عبور یا الگو را وارد کن</p>
+    <div id="lockTabs" class="row" hidden>
+      <button id="lockTabPass" class="btn primary" type="button">رمز عبور</button>
+      <button id="lockTabPattern" class="btn" type="button">الگو</button>
+    </div>
+    <form id="lockForm">
+      <input id="lockPassword" type="password" placeholder="رمز عبور" required>
+      <button class="btn primary" type="submit">باز کردن</button>
+    </form>
+    <div id="lockPatternWrap" hidden>
+      <div id="lockPatternPad" class="pattern-pad" aria-label="صفحه الگو"></div>
+      <p class="muted">الگو را با نگه‌داشتن ماوس روی نقطه‌ها بکش</p>
+    </div>
     <p id="lockError" class="error"></p>
-  </form>
+  </div>
 </div>
 
 <div id="app">
@@ -154,6 +164,7 @@
       <div id="viewerBadges" class="badges"></div>
       <div id="viewerMeta" class="card-meta"></div>
       <div class="viewer-actions">
+        <button id="viewerPinBtn" class="btn" type="button">📌 پین</button>
         <button id="viewerEditBtn" class="btn primary" type="button">ویرایش</button>
         <button id="viewerCopyBtn" class="btn" type="button" hidden>کپی</button>
         <button id="viewerDownloadBtn" class="btn" type="button" hidden>دانلود</button>
@@ -176,7 +187,18 @@
     </header>
     <div class="dialog-body">
       <section class="section">
-        <h3>پشتیبان‌گیری</h3>
+        <h3>الگوی ورود</h3>
+        <p id="patternStatus" class="muted"></p>
+        <input id="patternPassInput" type="password" placeholder="رمز عبور فعلی (برای ذخیره امن الگو)" hidden>
+        <div id="settingsPatternPad" class="pattern-pad" hidden aria-label="صفحه الگو"></div>
+        <p id="patternHint" class="muted" hidden>الگو را دو بار یکسان بکش (حداقل ۴ نقطه).</p>
+        <div class="row">
+          <button id="setPatternBtn" class="btn" type="button">ثبت / تغییر الگو</button>
+          <button id="removePatternBtn" class="btn danger" type="button">حذف الگو</button>
+        </div>
+      </section>
+      <section class="section">
+        <h3>رمز عبور و رمزنگاری</h3>
         <p class="muted">
           خروجی کامل به صورت JSON گرفته می‌شود. اگر رمزنگاری فعال باشد، بکاپ رمزگشایی‌شده صادر می‌شود؛ پس فایل را جای امن نگه دار.
           بازیابی، داده‌های فعلی را جایگزین می‌کند.
