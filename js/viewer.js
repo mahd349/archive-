@@ -9,7 +9,7 @@ import {
   toast
 } from './utils.js';
 import { getAttachmentBlob, softDeleteItem, togglePinned } from './repo.js';
-import { getItemById } from './state.js';
+import { getItemById, settings, saveSettings } from './state.js';
 import { renderMarkdown } from './markdown.js';
 import { importanceBadge, kindBadges, render, openFolder } from './render.js';
 import { openEditor } from './editor.js';
@@ -22,9 +22,12 @@ function trackUrl(url) {
   return url;
 }
 
+let rulerEl = null;
+
 function clearViewerMedia() {
   for (const url of objectUrls) URL.revokeObjectURL(url);
   objectUrls = [];
+  if (rulerEl) { rulerEl.classList.remove('ruler-line'); rulerEl = null; }
   $('#viewerContent').innerHTML = '';
 }
 
@@ -146,6 +149,34 @@ export async function openViewer(id) {
   await buildViewerContent(item);
   $('#viewerDialog').showModal();
 }
+
+$('#viewerContent').addEventListener('mousemove', (event) => {
+  if (!settings.readingRuler) return;
+  const line = event.target.closest('.md-line, li, h1, h2, h3, blockquote, pre');
+  if (rulerEl && rulerEl !== line) rulerEl.classList.remove('ruler-line');
+  if (line) line.classList.add('ruler-line');
+  rulerEl = line;
+});
+$('#viewerContent').addEventListener('mouseleave', () => {
+  if (rulerEl) { rulerEl.classList.remove('ruler-line'); rulerEl = null; }
+});
+
+const rulerBtn = document.createElement('button');
+rulerBtn.type = 'button';
+rulerBtn.className = 'btn';
+function syncRulerBtn() {
+  rulerBtn.textContent = settings.readingRuler ? '📏 خط‌کش: روشن' : '📏 خط‌کش: خاموش';
+  rulerBtn.classList.toggle('primary', settings.readingRuler);
+  rulerBtn.setAttribute('aria-pressed', String(settings.readingRuler));
+}
+rulerBtn.addEventListener('click', () => {
+  settings.readingRuler = !settings.readingRuler;
+  saveSettings();
+  syncRulerBtn();
+  if (!settings.readingRuler && rulerEl) { rulerEl.classList.remove('ruler-line'); rulerEl = null; }
+});
+$('#viewerPinBtn').parentElement.insertBefore(rulerBtn, $('#viewerPinBtn'));
+syncRulerBtn();
 
 $('#viewerCloseBtn').addEventListener('click', () => $('#viewerDialog').close());
 $('#viewerDialog').addEventListener('close', () => {
