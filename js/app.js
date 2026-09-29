@@ -164,7 +164,7 @@ function ensureImportanceOptions() {
     if (!select.querySelector('option[value="6"]')) {
       const option = document.createElement('option');
       option.value = '6';
-      option.textContent = 'اهمیت ۶';
+      option.textContent = '۶ - اهمیت خیلی زیاد';
       select.appendChild(option);
     }
   }
