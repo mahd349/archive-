@@ -12,9 +12,9 @@ export const settings = {
   encryptionEnabled: false,
   salt: null,
   hash: null,
-  iterations: 120000
+  iterations: 120000,
+  readingRuler: true
 };
-
 export const state = {
   search: '',
   type: '',
