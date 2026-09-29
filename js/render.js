@@ -288,7 +288,7 @@ async function loadThumb(att, img) {
 
 function createItemCard(item) {
   const card = document.createElement('article');
-  card.className = 'card';
+  card.className = 'card imp-' + (Number(item.importance) || 3);
   card.tabIndex = 0;
   card.setAttribute('role', 'button');
   card.setAttribute('aria-label', `باز کردن ${defaultTitle(item)}`);
