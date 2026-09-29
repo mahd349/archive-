@@ -19,7 +19,9 @@ import {
   tagsCache,
   getAllItems,
   getFolderTrail,
-  isFiltering
+  isFiltering,
+  settings,
+  saveSettings
 } from './state.js';
 import { openViewer, openFolderGuard } from './viewer.js';
 import { openEditor } from './editor.js';
@@ -42,6 +44,8 @@ export function clearFilters() {
   state.type = '';
   state.tag = '';
   state.importance = '';
+  state.onlyPinned = false;
+  state.onlyWeek = false;
   state.sort = 'created_desc';
   setPage(1);
   $('#searchInput').value = '';
@@ -141,7 +145,10 @@ export function getFiltered() {
   }
   if (state.type) result = result.filter(i => itemKinds(i).has(state.type));
   if (state.tag) result = result.filter(i => (i.tags || []).includes(state.tag));
-  if (state.importance) result = result.filter(i => String(i.importance) === state.importance);
+  if (state.importance === 'high') result = result.filter(i => Number(i.importance) >= 5);
+  else if (state.importance) result = result.filter(i => String(i.importance) === state.importance);
+  if (state.onlyPinned) result = result.filter(i => i.pinned);
+  if (state.onlyWeek) result = result.filter(i => Date.now() - new Date(i.updatedAt).getTime() < 7 * 86400000);
   const pinRank = (a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
   if (!filtering) {
     result.sort((a, b) => {
@@ -426,11 +433,60 @@ function createItemCard(item) {
   return card;
 }
 
+function timeGroup(dateString) {
+  const time = new Date(dateString).getTime();
+  if (new Date(dateString).toDateString() === new Date().toDateString()) return 'امروز';
+  if (Date.now() - time < 7 * 86400000) return 'این هفته';
+  return 'قدیمی‌تر';
+}
+
+function createListRow(item) {
+  const row = document.createElement('div');
+  row.className = 'list-row imp-' + (Number(item.importance) || 3) + (item.pinned ? ' pinned' : '');
+  row.tabIndex = 0;
+  row.setAttribute('role', 'button');
+  row.setAttribute('aria-label', `باز کردن ${defaultTitle(item)}`);
+  const title = document.createElement('span');
+  title.className = 'list-title';
+  title.dir = 'auto';
+  title.textContent = (item.kind === 'folder' ? '📁 ' : item.pinned ? '📌 ' : '') + defaultTitle(item);
+  const snippet = document.createElement('span');
+  snippet.className = 'list-snippet';
+  snippet.dir = 'auto';
+  snippet.textContent = itemSnippet(item).slice(0, 120);
+  const meta = document.createElement('span');
+  meta.className = 'list-meta';
+  meta.textContent = `${formatDate(item.updatedAt)} · ${[...itemKinds(item)].map(k => KIND_LABELS[k] || k).join('، ') || '—'}`;
+  row.append(title, snippet, meta);
+  const open = () => openFolderGuard(item);
+  row.addEventListener('click', open);
+  row.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+  });
+  return row;
+}
+
 function renderGallery(filtered) {
   const gallery = $('#gallery');
   gallery.innerHTML = '';
+  gallery.classList.toggle('list-view', settings.view === 'list');
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(start, start + PAGE_SIZE);
+  if (settings.view === 'list') {
+    let lastGroup = null;
+    for (const item of pageItems) {
+      const group = timeGroup(item.updatedAt);
+      if (group !== lastGroup) {
+        const header = document.createElement('div');
+        header.className = 'list-group';
+        header.textContent = group;
+        gallery.appendChild(header);
+        lastGroup = group;
+      }
+      gallery.appendChild(createListRow(item));
+    }
+    return;
+  }
   const visibleAttIds = new Set();
   for (const item of pageItems) {
     for (const att of item.attachments || []) visibleAttIds.add(att.id);
@@ -538,7 +594,56 @@ function renderEmpty(filteredCount) {
   empty.append(title, text, button);
 }
 
+const QUICK_CHIPS = [
+  { label: '📌 پین‌شده‌ها', get: () => state.onlyPinned, set: (v) => { state.onlyPinned = v; } },
+  { label: '🔥 اهمیت ۵ و ۶', get: () => state.importance === 'high', set: (v) => { state.importance = v ? 'high' : ''; } },
+  { label: '🕒 این هفته', get: () => state.onlyWeek, set: (v) => { state.onlyWeek = v; } }
+];
+
+const chipBar = document.createElement('div');
+chipBar.className = 'chip-bar';
+chipBar.setAttribute('role', 'group');
+chipBar.setAttribute('aria-label', 'فیلترهای سریع');
+for (const chip of QUICK_CHIPS) {
+  chip.button = document.createElement('button');
+  chip.button.type = 'button';
+  chip.button.className = 'chip quick-chip';
+  chip.button.textContent = chip.label;
+  chip.button.addEventListener('click', () => {
+    chip.set(!chip.get());
+    setPage(1);
+    render();
+  });
+  chipBar.appendChild(chip.button);
+}
+$('#gallery').parentElement.insertBefore(chipBar, $('#gallery'));
+
+const viewBtn = document.createElement('button');
+viewBtn.type = 'button';
+viewBtn.className = 'btn';
+viewBtn.id = 'viewToggleBtn';
+viewBtn.addEventListener('click', () => {
+  settings.view = settings.view === 'grid' ? 'list' : 'grid';
+  saveSettings();
+  syncViewBtn();
+  render();
+});
+function syncViewBtn() {
+  viewBtn.textContent = settings.view === 'grid' ? '☰ نمای فهرستی' : '▦ نمای شبکه‌ای';
+  viewBtn.setAttribute('aria-label', 'تغییر نمای نمایش');
+}
+$('#clearFiltersBtn').parentElement.appendChild(viewBtn);
+syncViewBtn();
+
+export function syncChips() {
+  for (const chip of QUICK_CHIPS) {
+    chip.button.classList.toggle('active', !!chip.get());
+    chip.button.setAttribute('aria-pressed', String(!!chip.get()));
+  }
+}
+
 export function render() {
+  syncChips();
   syncTagControls();
   renderBreadcrumb();
   const filtered = getFiltered();
