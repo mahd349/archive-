@@ -595,33 +595,20 @@ function renderEmpty(filteredCount) {
 }
 
 const QUICK_CHIPS = [
-  { label: '📌 پین‌شده‌ها', get: () => state.onlyPinned, set: (v) => { state.onlyPinned = v; } },
-  { label: '🔥 اهمیت ۵ و ۶', get: () => state.importance === 'high', set: (v) => { state.importance = v ? 'high' : ''; } },
-  { label: '🕒 این هفته', get: () => state.onlyWeek, set: (v) => { state.onlyWeek = v; } }
+  { id: '#chipPinned', get: () => state.onlyPinned, set: (v) => { state.onlyPinned = v; } },
+  { id: '#chipHigh', get: () => state.importance === 'high', set: (v) => { state.importance = v ? 'high' : ''; } },
+  { id: '#chipWeek', get: () => state.onlyWeek, set: (v) => { state.onlyWeek = v; } }
 ];
 
-const chipBar = document.createElement('div');
-chipBar.className = 'chip-bar';
-chipBar.setAttribute('role', 'group');
-chipBar.setAttribute('aria-label', 'فیلترهای سریع');
 for (const chip of QUICK_CHIPS) {
-  chip.button = document.createElement('button');
-  chip.button.type = 'button';
-  chip.button.className = 'chip quick-chip';
-  chip.button.textContent = chip.label;
-  chip.button.addEventListener('click', () => {
+  $(chip.id).addEventListener('click', () => {
     chip.set(!chip.get());
     setPage(1);
     render();
   });
-  chipBar.appendChild(chip.button);
 }
-$('#gallery').parentElement.insertBefore(chipBar, $('#gallery'));
 
-const viewBtn = document.createElement('button');
-viewBtn.type = 'button';
-viewBtn.className = 'btn';
-viewBtn.id = 'viewToggleBtn';
+const viewBtn = $('#viewToggleBtn');
 viewBtn.addEventListener('click', () => {
   settings.view = settings.view === 'grid' ? 'list' : 'grid';
   saveSettings();
@@ -630,20 +617,32 @@ viewBtn.addEventListener('click', () => {
 });
 function syncViewBtn() {
   viewBtn.textContent = settings.view === 'grid' ? '☰ نمای فهرستی' : '▦ نمای شبکه‌ای';
-  viewBtn.setAttribute('aria-label', 'تغییر نمای نمایش');
 }
-$('#clearFiltersBtn').parentElement.appendChild(viewBtn);
 syncViewBtn();
 
 export function syncChips() {
   for (const chip of QUICK_CHIPS) {
-    chip.button.classList.toggle('active', !!chip.get());
-    chip.button.setAttribute('aria-pressed', String(!!chip.get()));
+    $(chip.id).classList.toggle('active', !!chip.get());
+    $(chip.id).setAttribute('aria-pressed', String(!!chip.get()));
+  }
+}
+
+function syncFilterStates() {
+  const filters = [
+    ['#typeFilter', !!state.type],
+    ['#tagFilter', !!state.tag],
+    ['#importanceFilter', !!state.importance],
+    ['#sortFilter', state.sort !== 'created_desc'],
+    ['#searchInput', !!state.search.trim()]
+  ];
+  for (const [id, active] of filters) {
+    $(id).classList.toggle('filter-active', active);
   }
 }
 
 export function render() {
   syncChips();
+  syncFilterStates();
   syncTagControls();
   renderBreadcrumb();
   const filtered = getFiltered();
