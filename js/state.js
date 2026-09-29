@@ -13,7 +13,8 @@ export const settings = {
   salt: null,
   hash: null,
   iterations: 120000,
-  readingRuler: true
+  readingRuler: true,
+  view: 'grid'
 };
 export const state = {
   search: '',
@@ -21,7 +22,9 @@ export const state = {
   tag: '',
   importance: '',
   sort: 'created_desc',
-  folderId: null
+  folderId: null,
+  onlyPinned: false,
+  onlyWeek: false
 };
 
 let cryptoKey = null;
