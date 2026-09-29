@@ -607,3 +607,23 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .viewer-text > *:nth-child(odd) { background: rgba(148, 163, 184, .10); }
 .viewer-text p.md-gap { margin-top: .9em; }
 .viewer-text .ruler-line { background: rgba(96, 165, 250, .14); outline: 1px solid rgba(96, 165, 250, .55); }
+
+/* ===== v3 upgrade — part 3: list view + quick chips ===== */
+.chip-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 12px; }
+.quick-chip { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: .85rem; }
+.quick-chip.active { background: rgba(96, 165, 250, .15); color: #93c5fd; border-color: rgba(96, 165, 250, .5); }
+#gallery.list-view { display: flex; flex-direction: column; gap: 2px; }
+.list-group { margin-top: 14px; padding: 4px 10px; font-size: .85rem; color: var(--muted); background: var(--surface2); border-radius: 8px; }
+.list-row { display: grid; grid-template-columns: minmax(140px, 26%) 1fr auto; gap: 12px; align-items: baseline; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+.list-row:hover, .list-row:focus-visible { background: var(--surface2); border-color: var(--border); }
+.list-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-snippet { color: var(--muted); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-meta { color: var(--muted); font-size: .75rem; white-space: nowrap; }
+.list-row.imp-6 .list-title { color: var(--imp6); }
+.list-row.imp-5 .list-title { color: var(--imp5); }
+.list-row.imp-6 .list-snippet { color: var(--imp6-soft); }
+.list-row.imp-5 .list-snippet { color: var(--imp5-soft); }
+@media (max-width: 640px) {
+  .list-row { grid-template-columns: 1fr auto; }
+  .list-snippet { grid-column: 1 / -1; }
+}
