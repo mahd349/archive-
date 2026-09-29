@@ -90,10 +90,14 @@ export function renderMarkdown(source) {
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
-    const p = document.createElement('p');
-    p.dir = 'auto';
-    p.innerHTML = inline(paragraph.join('\n'), parts);
-    wrap.appendChild(p);
+    const isFirst = wrap.childElementCount === 0;
+    paragraph.forEach((line, index) => {
+      const p = document.createElement('p');
+      p.className = 'md-line' + (!isFirst && index === 0 ? ' md-gap' : '');
+      p.dir = 'auto';
+      p.innerHTML = inline(line, parts);
+      wrap.appendChild(p);
+    });
     paragraph = [];
   };
   const flushList = () => {
