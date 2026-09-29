@@ -159,16 +159,6 @@ function bindEvents() {
   });
 }
 
-function ensureImportanceOptions() {
-  for (const select of document.querySelectorAll('#fImportance, #importanceFilter')) {
-    if (!select.querySelector('option[value="6"]')) {
-      const option = document.createElement('option');
-      option.value = '6';
-      option.textContent = '۶ - اهمیت خیلی زیاد';
-      select.appendChild(option);
-    }
-  }
-}
 
 function init() {
   ensureImportanceOptions();
