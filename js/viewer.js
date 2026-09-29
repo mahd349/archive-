@@ -161,9 +161,7 @@ $('#viewerContent').addEventListener('mouseleave', () => {
   if (rulerEl) { rulerEl.classList.remove('ruler-line'); rulerEl = null; }
 });
 
-const rulerBtn = document.createElement('button');
-rulerBtn.type = 'button';
-rulerBtn.className = 'btn';
+const rulerBtn = $('#viewerRulerBtn');
 function syncRulerBtn() {
   rulerBtn.textContent = settings.readingRuler ? '📏 خط‌کش: روشن' : '📏 خط‌کش: خاموش';
   rulerBtn.classList.toggle('primary', settings.readingRuler);
@@ -175,7 +173,6 @@ rulerBtn.addEventListener('click', () => {
   syncRulerBtn();
   if (!settings.readingRuler && rulerEl) { rulerEl.classList.remove('ruler-line'); rulerEl = null; }
 });
-$('#viewerPinBtn').parentElement.insertBefore(rulerBtn, $('#viewerPinBtn'));
 syncRulerBtn();
 
 $('#viewerCloseBtn').addEventListener('click', () => $('#viewerDialog').close());
