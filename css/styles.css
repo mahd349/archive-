@@ -582,3 +582,19 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .lock-card form { display: grid; gap: 12px; }
 .pin-btn.pinned { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .badge.pin { background: rgba(59,130,246,.15); color: #60a5fa; border-color: rgba(59,130,246,.3); }
+/* ===== v3 upgrade — part 1: importance colors (6=red, 5=bright purple) ===== */
+:root {
+  --imp6: #f87171; --imp6-soft: #fca5a5;
+  --imp5: #c084fc; --imp5-soft: #d8b4fe;
+  --imp4: #fb923c; --imp4-soft: #fdba74;
+}
+.badge.imp-6 { background: rgba(248, 113, 113, .16); color: var(--imp6); border-color: rgba(248, 113, 113, .45); }
+.badge.imp-5 { background: rgba(192, 132, 252, .16); color: var(--imp5); border-color: rgba(192, 132, 252, .5); }
+.card.imp-6 { border-color: rgba(248, 113, 113, .35); }
+.card.imp-5 { border-color: rgba(192, 132, 252, .4); }
+.card.imp-6 .card-info h3 { color: var(--imp6); }
+.card.imp-5 .card-info h3 { color: var(--imp5); }
+.card.imp-4 .card-info h3 { color: var(--imp4); }
+.card.imp-6 .snippet, .card.imp-6 .preview { color: var(--imp6-soft); }
+.card.imp-5 .snippet, .card.imp-5 .preview { color: var(--imp5-soft); }
+.card.imp-4 .snippet, .card.imp-4 .preview { color: var(--imp4-soft); }
