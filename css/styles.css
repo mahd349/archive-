@@ -598,3 +598,12 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 .card.imp-6 .snippet, .card.imp-6 .preview { color: var(--imp6-soft); }
 .card.imp-5 .snippet, .card.imp-5 .preview { color: var(--imp5-soft); }
 .card.imp-4 .snippet, .card.imp-4 .preview { color: var(--imp4-soft); }
+/* ===== v3 upgrade — part 2: reading mode ===== */
+.viewer-text { font-size: 20px; line-height: 2; max-width: 72ch; margin-inline: auto; }
+.viewer-text p, .viewer-text h1, .viewer-text h2, .viewer-text h3,
+.viewer-text ul, .viewer-text ol, .viewer-text blockquote, .viewer-text pre {
+  margin: 0; padding-inline: 8px; border-radius: 6px;
+}
+.viewer-text > *:nth-child(odd) { background: rgba(148, 163, 184, .10); }
+.viewer-text p.md-gap { margin-top: .9em; }
+.viewer-text .ruler-line { background: rgba(96, 165, 250, .14); outline: 1px solid rgba(96, 165, 250, .55); }
