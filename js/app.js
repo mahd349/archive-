@@ -161,7 +161,6 @@ function bindEvents() {
 
 
 function init() {
-  ensureImportanceOptions();
   loadSettings();
   applyTheme();
   injectManifestLink();
